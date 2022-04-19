@@ -1,14 +1,17 @@
-import React from 'react';
-import { FlatList, Image, TouchableOpacity, View, Text, StyleSheet, FlatListProps } from 'react-native';
+import React, { createRef } from 'react';
+import { FlatList, Image, TouchableOpacity, View, Text, StyleSheet, FlatListProps, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 
 import { ItemWrapper } from './ItemWrapper';
 
 import trashIcon from '../assets/icons/trash/trash.png'
+import editIcon from '../assets/icons/edit/edit.png'
+import closeIcon from '../assets/icons/close/close.png'
 
 export interface Task {
   id: number;
   title: string;
+  editable: boolean;
   done: boolean;
 }
 
@@ -16,9 +19,20 @@ interface TasksListProps {
   tasks: Task[];
   toggleTaskDone: (id: number) => void;
   removeTask: (id: number) => void;
+  editTask: (id: number) => void;
 }
 
-export function TasksList({ tasks, toggleTaskDone, removeTask }: TasksListProps) {
+export function TasksList({
+  tasks,
+  toggleTaskDone, 
+  removeTask,
+  editTask
+}: TasksListProps) {
+  const inputRef = createRef<TextInput>();
+  function testFocus() {
+
+    inputRef.current?.focus();    
+  }
   return (
     <FlatList
       data={tasks}
@@ -48,22 +62,38 @@ export function TasksList({ tasks, toggleTaskDone, removeTask }: TasksListProps)
                   )}
                 </View>
 
-                <Text 
+                <TextInput 
                   style={item.done ? styles.taskTextDone : styles.taskText}
-
+                  editable={item.editable}
+                  // onSubmitEditing={() => editTask(item.id)}
+                  onSubmitEditing={() => testFocus()}
+                  ref={inputRef}
                 >
                   {item.title}
-                </Text>
+                </TextInput>
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity
-              testID={`trash-${index}`}
-              style={{ paddingHorizontal: 24 }}
-              onPress={() => removeTask(item.id)}
-            >
-              <Image source={trashIcon} />
-            </TouchableOpacity>
+            <View style={styles.iconContainer}>
+
+              <TouchableOpacity
+                testID={`edit-${index}`}
+                style={{ marginRight: 24 }}
+                onPress={() => editTask(item.id)}
+              >
+                <Image source={item.editable ? closeIcon : editIcon} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                testID={`trash-${index}`}
+                style={{ marginRight: 24 }}
+                onPress={() => removeTask(item.id)}
+              >
+                <Image source={trashIcon} />
+              </TouchableOpacity>
+
+            </View>
+
           </ItemWrapper>
         )
       }}
@@ -111,5 +141,10 @@ const styles = StyleSheet.create({
     color: '#1DB863',
     textDecorationLine: 'line-through',
     fontFamily: 'Inter-Medium'
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center'
   }
 })
